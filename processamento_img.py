@@ -72,25 +72,26 @@ classificador_dlib = dlib.shape_predictor(classificador_dlib_68_path)
 detector_face = dlib.get_frontal_face_detector()
 
 
-def testar_individual(x,y):
-    imagem = cv2.imread(faces_path_teste + f's{x}_{y}.jpg', cv2.IMREAD_GRAYSCALE)
-    imagem = cv2.resize(imagem, (200,200), interpolation=cv2.INTER_LANCZOS4)
-    
-
-    #------------Analise de teste----------#
+def testar_individual(x):
+    imagem = cv2.cvtColor(x, cv2.COLOR_RGB2GRAY)
     valor, predict = modelo_eingenfaces.predict(imagem)
-    plt.figure(figsize=(10,5))
-    plt.subplot(121)
-    plt.title('Sujeito preditado:' + str(x))
-    plt.imshow(imagem, cmap='grey')
-    plt.subplot(122)
-    plt.title('Sujeito acertado:' + str(x))
-    imagem_predict = cv2.imread(faces_path_treino + f's{valor}_01.jpg', cv2.IMREAD_GRAYSCALE)
-    imagem_predict = cv2.resize(imagem_predict, (200,200), interpolation=cv2.INTER_LANCZOS4)
-    plt.imshow(imagem_predict, cmap='grey')
-    plt.show()
+    print(valor, predict)
+    imagem_anotada = x
+    info = 'Gabriel Carvalho'
+    if (valor == 51 and predict <= 110):
+        cv2.putText(imagem_anotada, info, (20,50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,0))
+        #imagem_anotada = cv2.cvtColor(imagem, cv2.COLOR_GRAY2BGR)
+        return imagem_anotada
+    if (valor == 52 and predict <= 110):
+        info = 'Leticia Carvalho'
+        cv2.putText(imagem_anotada, info, (20,50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,0))
+        #imagem_anotada = cv2.cvtColor(imagem, cv2.COLOR_GRAY2BGR)
+        return imagem_anotada
+    else:
+        cv2.putText(imagem_anotada, "", (20,50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,0))
+        #imagem_anotada = cv2.cvtColor(imagem, cv2.COLOR_GRAY2BGR)
 
-    #-------- FIM DO MODELO DE TESTES-----#
+        return imagem_anotada
 
 
 def desenhar_face(imagem):
@@ -98,10 +99,10 @@ def desenhar_face(imagem):
     marcos_faciais = pontos_marcos_faciais(imagem)
     imagem_anotada = anotar_rosto(imagem)
     #imagem_anotada = anotar_marcos_faciais(imagem_anotada, marcos_faciais)
-    if marcos_faciais is not None:
+    #if marcos_faciais is not None:
         #imagem_anotada = aspeco_razao_boca(marcos_faciais[0][LABIO])
         #imagem_anotada = round(imagem_anotada, 3)
-        imagem_anotada = anotar_marcos_casca(imagem_anotada, marcos_faciais, LABIO)
+        #imagem_anotada = anotar_marcos_casca(imagem_anotada, marcos_faciais, LABIO)
     return imagem_anotada
 
 def padronizar_imagem(frame):
@@ -128,8 +129,9 @@ def capturar_video():
         if not captura_ok:
             print("Erro: Não foi possível ler o frame da webcam.")
             break
-        frame = desenhar_face(frame)
+        frame = testar_individual(frame)
         frame = padronizar_imagem(frame)
+        frame = desenhar_face(frame)
         exibir_video(frame)
 
         # Atualizar a janela tkinter
@@ -142,8 +144,3 @@ capturar_video()
 
 # Iniciar o loop principal do tkinter
 root.mainloop()
-#desenhar_face()
-
-#testar_individual(25, 11)
-#true = test_model() # testa tudo
-#print(f"Taxa de acerto: {true / total * 100:.2f}%")
